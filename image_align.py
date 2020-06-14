@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 import dlib
 import time
+import imutils
 
 
 def load_img(path):
@@ -56,8 +57,10 @@ def shape_to_normal(shape):
 
 
 def imgRotate(img, nose_center, angle):
-	M = cv2.getRotationMatrix2D(nose_center, angle, 1)
-	rotated = cv2.warpAffine(img, M, (img.shape[1], img.shape[0]), flags=cv2.INTER_CUBIC)
+	#M = cv2.getRotationMatrix2D(nose_center, angle, 1)
+	#rotated = cv2.warpAffine(img, M, (img.shape[1], img.shape[0]), flags=cv2.INTER_CUBIC)
+
+	rotated = imutils.rotate_bound(img, angle)
 	return rotated
 
 
@@ -65,7 +68,23 @@ def imgScale(img, scale):
 	width = int(img.shape[1] * scale)
 	height = int(img.shape[0] * scale)
 	dim = (width, height)
+	#return Image.fromarray(cv2.resize(img, dim, interpolation=cv2.INTER_AREA))
 	return cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+
+
+def imgCrop(img, point, width, height):
+	left = int(point[0] - (width / 2))
+	right = int(point[0] + (width / 2))
+	upper = int(point[1] - (height / 2))
+	lower = int(point[1] + (height / 2))
+	#print(left, upper, right, lower)
+	#print(img.size)
+	#img = np.array(img)
+	cropped_img = img[upper:lower, left:right, :]
+	#print(cropped_img.shape)
+	#cv2.imshow('image',cropped_img)
+	return cropped_img
+	#return img.crop((left, upper, left + width, upper + height))
 
 
 def rotation_detection_dlib(img, eyeXDist=620):

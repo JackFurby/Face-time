@@ -1,10 +1,12 @@
 import glob
 import os
-from image_align import getAlignmentInfo, imgRotate, show_img
+from image_align import getAlignmentInfo, imgRotate, imgScale, imgCrop, show_img, rotation_detection_dlib
 import matplotlib
 import matplotlib.pyplot as plt
 from celluloid import Camera
 import cv2
+import numpy as np
+from tqdm import tqdm
 matplotlib.use("Agg")
 
 
@@ -34,26 +36,40 @@ def makeVideo(images, saveName, imagesPerSecond):
 		saveName (string): The name of the file the video is saved as
 		imagesPerSecond (int): Number of images displayed in a given second
 	"""
-	fig = plt.figure()
-	fig, ax = plt.subplots(nrows=1, ncols=1)
-	camera = Camera(fig)
+	#fig = plt.figure()
+	#fig, ax = plt.subplots(nrows=1, ncols=1)
+	#camera = Camera(fig)
 
-	for image in images:
-		img, scale, point, angle = getAlignmentInfo(image)
+	# 4608, 3456
+
+	width = 2200
+	height = 2750
+
+	video = cv2.VideoWriter(saveName + '.avi', 0, imagesPerSecond, (width, height))
+
+	for i in tqdm(range(len(images))):
+		img, scale, point, angle = getAlignmentInfo(images[i])
+		#img = cv2.circle(img, (point[0], point[1]), 10, (0, 0, 255), -1)  # Draw dot on center of eyes
 		img = imgRotate(img, point, angle)
-		#img = imgScale(img, scale)
-		ax.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-		#plt.imshow(img)
-		camera.snap()
+		img = imgScale(img, scale)
+		# After rotate + scale, point moves - recaculate it (this is very slow)
+		newXscale, newPoint, newAngle = rotation_detection_dlib(img)
+		img = imgCrop(img, newPoint, width, height)
+		img = np.array(img)
+		#print(img.shape)
 
-	animation = camera.animate()
-	animation.save(saveName + '.mp4', fps=imagesPerSecond)
+		video.write(img)
+
+	cv2.destroyAllWindows()
+	video.release()
+
+	#animation = camera.animate()
+	#animation.save(saveName + '.mp4', fps=imagesPerSecond)
 
 
 def main():
 	"""The main script"""
 	root = "./images"
-	root = "./imgTest"
 	type = "jpg"
 	saveName = "output"
 	imagesPerSecond = 16
