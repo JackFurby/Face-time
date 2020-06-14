@@ -1,7 +1,6 @@
 """implementation based on https://github.com/HikkaV/Precise-face-alignment/blob/master/face_alignment.py"""
 import cv2
 import numpy as np
-from PIL import Image
 import dlib
 import time
 import imutils
@@ -57,9 +56,6 @@ def shape_to_normal(shape):
 
 
 def imgRotate(img, nose_center, angle):
-	#M = cv2.getRotationMatrix2D(nose_center, angle, 1)
-	#rotated = cv2.warpAffine(img, M, (img.shape[1], img.shape[0]), flags=cv2.INTER_CUBIC)
-
 	rotated = imutils.rotate_bound(img, angle)
 	return rotated
 
@@ -68,7 +64,6 @@ def imgScale(img, scale):
 	width = int(img.shape[1] * scale)
 	height = int(img.shape[0] * scale)
 	dim = (width, height)
-	#return Image.fromarray(cv2.resize(img, dim, interpolation=cv2.INTER_AREA))
 	return cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
 
 
@@ -77,14 +72,8 @@ def imgCrop(img, point, width, height):
 	right = int(point[0] + (width / 2))
 	upper = int(point[1] - (height / 2))
 	lower = int(point[1] + (height / 2))
-	#print(left, upper, right, lower)
-	#print(img.size)
-	#img = np.array(img)
 	cropped_img = img[upper:lower, left:right, :]
-	#print(cropped_img.shape)
-	#cv2.imshow('image',cropped_img)
 	return cropped_img
-	#return img.crop((left, upper, left + width, upper + height))
 
 
 def rotation_detection_dlib(img, eyeXDist=620):
@@ -114,7 +103,10 @@ def rotation_detection_dlib(img, eyeXDist=620):
 			angle = np.degrees(-angle)
 		else:
 			angle = np.degrees(angle)
-	return xScale, rotated_point, angle
+		return xScale, rotated_point, angle
+	# No face found
+	else:
+		return -1, (-1, -1), -1
 
 
 def show_img(img):
@@ -127,7 +119,11 @@ def show_img(img):
 	cv2.destroyAllWindows()
 
 
-def getAlignmentInfo(path):
+def getAlignmentInfo(path, width, height, padding=True):
 	img = load_img(path)
+	BLACK = [0, 0, 0]
+	# Padding is added so the output can be at a chosen resolution.
+	if padding:
+		img = cv2.copyMakeBorder(img, width, width, height, height, cv2.BORDER_CONSTANT, value=BLACK)
 	xScale, rotated_point, angle = rotation_detection_dlib(img)
 	return img, xScale, rotated_point, angle

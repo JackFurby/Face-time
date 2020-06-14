@@ -1,7 +1,6 @@
 opencv-python
 numpy
 dlib
-Pillow
 matplotlib
 celluloid
 imutils
