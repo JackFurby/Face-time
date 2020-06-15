@@ -1,6 +1,6 @@
 import glob
 import os
-from image_align import getAlignmentInfo, imgRotate, imgScale, imgCrop, show_img, rotation_detection_dlib
+from image_align import getAlignmentInfo, imgRotate, imgScale, imgCrop, show_img, rotation_detection_dlib, imgPad
 import matplotlib
 import matplotlib.pyplot as plt
 from celluloid import Camera
@@ -50,8 +50,10 @@ def makeVideo(images, saveName, imagesPerSecond, width, height, padding):
 		img = imgScale(img, scale)
 		# After rotate + scale, point needs updating - recaculate it (this is very slow)
 		newXscale, newPoint, newAngle = rotation_detection_dlib(img)
+		img = imgPad(img, width, height)  # Ensures the selected resolution is possible
+		newPoint = (newPoint[0] + height, newPoint[1] + width)
 		img = imgCrop(img, newPoint, width, height)
-		# print(img.shape)
+		#print(img.shape)
 
 		video.write(img)
 
@@ -95,7 +97,6 @@ if __name__ == "__main__":
 	parser.add_argument("--ips", help="Images per second in output (default: 8)", type=int, default=8)
 	parser.add_argument("--width", help="Width of output video in pixels (default: 7680)", type=int, default=7680)
 	parser.add_argument("--height", help="Height of output video in pixels (default: 4320)", type=int, default=4320)
-	parser.add_argument("--padding", help="Add padding to the images to guarantee the width and height do not exceed their boundaries", type=str2bool, default=True)
 	args = parser.parse_args()
 
 	main(args)

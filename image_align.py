@@ -76,7 +76,12 @@ def imgCrop(img, point, width, height):
 	return cropped_img
 
 
-def rotation_detection_dlib(img, eyeXDist=620):
+def imgPad(img, width, height):
+	BLACK = [0, 0, 0]
+	return cv2.copyMakeBorder(img, width, width, height, height, cv2.BORDER_CONSTANT, value=BLACK)
+
+
+def rotation_detection_dlib(img, eyeXDist=720):
 	detector = dlib.get_frontal_face_detector()
 	predictor = dlib.shape_predictor('shape_predictor_5_face_landmarks.dat')
 	gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -121,9 +126,5 @@ def show_img(img):
 
 def getAlignmentInfo(path, width, height, padding=True):
 	img = load_img(path)
-	BLACK = [0, 0, 0]
-	# Padding is added so the output can be at a chosen resolution.
-	if padding:
-		img = cv2.copyMakeBorder(img, width, width, height, height, cv2.BORDER_CONSTANT, value=BLACK)
 	xScale, rotated_point, angle = rotation_detection_dlib(img)
 	return img, xScale, rotated_point, angle
