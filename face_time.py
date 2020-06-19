@@ -28,7 +28,7 @@ def getImageLocations(root, type, newestFirst):
 	return images
 
 
-def makeVideo(images, saveName, imagesPerSecond, width, height, padding):
+def makeVideo(images, saveName, imagesPerSecond, width, height):
 	"""
 	Creates a video from a series of images
 
@@ -41,7 +41,7 @@ def makeVideo(images, saveName, imagesPerSecond, width, height, padding):
 	video = cv2.VideoWriter(saveName + '.avi', 0, imagesPerSecond, (width, height))
 
 	for i in tqdm(range(len(images))):
-		img, scale, point, angle = getAlignmentInfo(images[i], width, height, padding)
+		img, scale, point, angle = getAlignmentInfo(images[i], width, height)
 		if (scale == -1) and (point == (-1, -1)) and (angle == -1):
 			print("No face found in", images[i])
 			continue  # skip image
@@ -49,7 +49,7 @@ def makeVideo(images, saveName, imagesPerSecond, width, height, padding):
 		img = imgRotate(img, point, angle)
 		img = imgScale(img, scale)
 		# After rotate + scale, point needs updating - recaculate it (this is very slow)
-		newXscale, newPoint, newAngle = rotation_detection_dlib(img)
+		newXscale, newPoint, newAngle = rotation_detection_dlib(img, eyeXDist=height / 6)
 		img = imgPad(img, width, height)  # Ensures the selected resolution is possible
 		newPoint = (newPoint[0] + height, newPoint[1] + width)
 		img = imgCrop(img, newPoint, width, height)
@@ -70,11 +70,10 @@ def main(args):
 	newestFirst = False
 	width = args.width
 	height = args.height
-	padding = args.padding
 
 	images = getImageLocations(root, type, newestFirst)
 
-	makeVideo(images, saveName, imagesPerSecond, width, height, padding)
+	makeVideo(images, saveName, imagesPerSecond, width, height)
 
 
 # https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
@@ -95,8 +94,8 @@ if __name__ == "__main__":
 	parser.add_argument("--type", choices=['jpg', 'jpeg', 'png'], help="Image file type", required=True)
 	parser.add_argument("--save", help="Name of output video (default: output)", default="output")
 	parser.add_argument("--ips", help="Images per second in output (default: 8)", type=int, default=8)
-	parser.add_argument("--width", help="Width of output video in pixels (default: 7680)", type=int, default=7680)
-	parser.add_argument("--height", help="Height of output video in pixels (default: 4320)", type=int, default=4320)
+	parser.add_argument("--width", help="Width of output video in pixels (default: 3840)", type=int, default=3840)
+	parser.add_argument("--height", help="Height of output video in pixels (default: 2160)", type=int, default=2160)
 	args = parser.parse_args()
 
 	main(args)

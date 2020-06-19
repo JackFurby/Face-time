@@ -124,7 +124,7 @@ def show_img(img):
 	cv2.destroyAllWindows()
 
 
-def getAlignmentInfo(path, width, height, padding=True):
+def getAlignmentInfo(path, width, height):
 	img = load_img(path)
-	xScale, rotated_point, angle = rotation_detection_dlib(img)
+	xScale, rotated_point, angle = rotation_detection_dlib(img, eyeXDist=height / 6)
 	return img, xScale, rotated_point, angle
