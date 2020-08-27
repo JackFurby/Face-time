@@ -1,14 +1,9 @@
 import glob
 import os
-from image_align import getAlignmentInfo, imgRotate, imgScale, imgCrop, show_img, rotation_detection_dlib, imgPad
-import matplotlib
-import matplotlib.pyplot as plt
-from celluloid import Camera
+from image_align import show_img, getTransformedImage
 import cv2
-import numpy as np
 from tqdm import tqdm
 import argparse
-matplotlib.use("Agg")
 
 
 def getImageLocations(root, type, newestFirst):
@@ -36,24 +31,19 @@ def makeVideo(images, saveName, imagesPerSecond, width, height):
 		images (list): A list of file paths to images
 		saveName (string): The name of the file the video is saved as
 		imagesPerSecond (int): Number of images displayed in a given second
+		width (int): Output video resolution width
+		height (int): Output video resolution height
 	"""
 
 	video = cv2.VideoWriter(saveName + '.avi', 0, imagesPerSecond, (width, height))
 
 	for i in tqdm(range(len(images))):
-		img, scale, point, angle = getAlignmentInfo(images[i], width, height)
-		if (scale == -1) and (point == (-1, -1)) and (angle == -1):
+
+		img = getTransformedImage(images[i], width, height)
+
+		if type(img) == type(None):
 			print("No face found in", images[i])
 			continue  # skip image
-		#img = cv2.circle(img, (point[0], point[1]), 10, (0, 0, 255), -1)  # Draw dot between eyes
-		img = imgRotate(img, point, angle)
-		img = imgScale(img, scale)
-		# After rotate + scale, point needs updating - recaculate it (this is very slow)
-		newXscale, newPoint, newAngle = rotation_detection_dlib(img, eyeXDist=height / 6)
-		img = imgPad(img, width, height)  # Ensures the selected resolution is possible
-		newPoint = (newPoint[0] + height, newPoint[1] + width)
-		img = imgCrop(img, newPoint, width, height)
-		#print(img.shape)
 
 		video.write(img)
 
