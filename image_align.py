@@ -140,6 +140,7 @@ def getTransformedImage(path, width, height):
 	img = load_img(path)
 	faceWidth = width * 0.5
 
+	# If there are multiple faces in the picture it seems to get the center one
 	detector = dlib.get_frontal_face_detector()
 	predictor = dlib.shape_predictor('shape_predictor_5_face_landmarks.dat')
 	gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

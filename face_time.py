@@ -17,8 +17,22 @@ def getImageLocations(root, type, newestFirst):
 	Returns:
 		list: Sorted list of file paths to images
 	"""
-	images = glob.glob(os.path.join(root + '/*.' + type))
-	images.sort(key=os.path.getmtime, reverse=newestFirst)
+
+	jpegFileExt = ['jpeg', 'JPEG', 'jpg', 'JPG', 'jpe', 'JPE', ' jif', 'JIF', 'JFIF', 'jfif', 'JFI', 'jfi']
+	pngFileExt = ['png', 'PNG']
+
+	if type in jpegFileExt:
+		extList = jpegFileExt
+	elif type in pngFileExt:
+		extList = pngFileExt
+	else:
+		extList = [type]
+
+	images = []
+	for i in extList:
+		imagebatch = glob.glob(os.path.join(root + '/*.' + i))
+		images += imagebatch
+	images.sort(reverse=newestFirst)
 
 	return images
 
