@@ -136,6 +136,10 @@ def show_img(img):
 	cv2.destroyAllWindows()
 
 
+def get_rects(image):
+	return detector(image, 0)
+
+
 def getTransformedImage(path, width, height):
 	img = load_img(path)
 	faceWidth = width * 0.5
@@ -143,22 +147,26 @@ def getTransformedImage(path, width, height):
 	# If there are multiple faces in the picture it seems to get the center one
 	detector = dlib.get_frontal_face_detector()
 	predictor = dlib.shape_predictor('shape_predictor_5_face_landmarks.dat')
-	gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-	rects = detector(gray, 0)
-	for rect in rects:
-		#  points of rectangle around face detected
-		x = rect.left()
-		y = rect.top()
-		w = rect.right()
-		h = rect.bottom()
+	# Attempt to find a face a maximum of 5 times
+	passes = 0
+	while passes < 5:
+		# If no face found in the last pass then reduce the image size by 5% (face might be over the max size detectable)
+		if passes > 0:
+			newImgWidth = int(img.shape[1] * 0.95)
+			newImgHeight = int(img.shape[0] * 0.95)
+			img = cv2.resize(img, (newImgWidth, newImgHeight))
+		gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+		rects = detector(gray, 0)
+		# Face found, rotate, resize and crop ready to be added to the video output
+		if len(rects) > 0:
+			for rect in rects:
+				faceAligned = align(img, gray, rect, predictor, desiredFaceWidth=faceWidth)
+				faceAligned = imgPad(faceAligned, width, height)
+				point = (faceAligned.shape[1]/2, faceAligned.shape[0]/2)
+				faceAligned = imgCrop(faceAligned, point, width, height)
+				#show_img(faceAligned)
 
-		faceAligned = align(img, gray, rect, predictor, desiredFaceWidth=faceWidth)
-		faceAligned = imgPad(faceAligned, width, height)
-		point = (faceAligned.shape[1]/2, faceAligned.shape[0]/2)
-		faceAligned = imgCrop(faceAligned, point, width, height)
-		#show_img(faceAligned)
-
-		return faceAligned
-	# no face found
-	else:
-		return None
+				return faceAligned
+		passes += 1  # No face found, try again
+	# no face found (and 5 passes have been completed)
+	return None
