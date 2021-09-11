@@ -78,8 +78,8 @@ def align(image, gray, rect, predictor, desiredFaceWidth, desiredFaceHeight=None
 	rightEyePts = shape[rStart:rEnd]
 
 	# compute the center of mass for each eye
-	leftEyeCenter = leftEyePts.mean(axis=0).astype("int")
-	rightEyeCenter = rightEyePts.mean(axis=0).astype("int")
+	leftEyeCenter = leftEyePts.mean(axis=0).astype(int)
+	rightEyeCenter = rightEyePts.mean(axis=0).astype(int)
 
 	# compute the angle between the eye centroids
 	dY = rightEyeCenter[1] - leftEyeCenter[1]
@@ -101,8 +101,8 @@ def align(image, gray, rect, predictor, desiredFaceWidth, desiredFaceHeight=None
 
 	# compute center (x, y)-coordinates (i.e., the median point)
 	# between the two eyes in the input image
-	eyesCenter = ((leftEyeCenter[0] + rightEyeCenter[0]) // 2,
-		(leftEyeCenter[1] + rightEyeCenter[1]) // 2)
+	eyesCenter = ((leftEyeCenter[0].item() + rightEyeCenter[0].item()) // 2,
+		(leftEyeCenter[1].item() + rightEyeCenter[1].item()) // 2)
 
 	# grab the rotation matrix for rotating and scaling the face
 	M = cv2.getRotationMatrix2D(eyesCenter, angle, scale)
