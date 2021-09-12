@@ -6,7 +6,7 @@ Given a file path to a folder of face images, this script will output a video of
 
 ### How to use
 
-usage of this script will require you to have installed Python on your machine and installed all dependencies found in requirements.txt. There are several arguments to pass into the script which are as follows:
+usage of this script will require you to have installed Python and FFMPEG on your machine and install all dependencies found in requirements.txt. There are several arguments to pass into the script which are as follows:
 
 ```
 arguments:

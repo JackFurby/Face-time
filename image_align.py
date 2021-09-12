@@ -140,7 +140,7 @@ def align(image, gray, rect, predictor, desiredFaceWidth, desiredFaceHeight=None
 
 
 def show_img(img, coords=None):
-	# If corrdinates are provided draw a circle on the image for each coordinate
+	# If corrdinates are provided draw a red circle on the image for each coordinate
 	if coords is not None:
 		for i in coords:
 			img = cv2.circle(img, (i[0], i[1]), 5, [0, 0, 255], 5)
@@ -178,6 +178,7 @@ def getTransformedImage(path, width, height):
 		if len(rects) > 0:
 			for rect in rects:
 				faceAligned = align(img, gray, rect, predictor, desiredFaceWidth=faceWidth)
+				# If face found was too small (probably not a face)
 				if faceAligned is None:
 					return None
 				faceAligned = imgPad(faceAligned, width, height)

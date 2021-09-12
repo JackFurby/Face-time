@@ -52,28 +52,8 @@ def makeVideo(images, saveName, imagesPerSecond, width, height):
 		width (int): Output video resolution width
 		height (int): Output video resolution height
 	"""
-
-	"""
-	video = cv2.VideoWriter(saveName + '.avi', 0, imagesPerSecond, (width, height))
-
-	for i in tqdm(range(len(images))):
-
-		img = getTransformedImage(images[i], width, height)
-
-		if type(img) == type(None):
-			print("No face found in", images[i])
-			continue  # skip image
-
-		video.write(img)
-		del img
-
-	cv2.destroyAllWindows()
-	video.release()
-	"""
-
-
-	p = Popen(['ffmpeg', '-y', '-f', 'image2pipe', '-vcodec', 'mjpeg', '-r', str(imagesPerSecond), '-i', '-', '-vcodec', 'mpeg4', '-qscale', '5', '-r', str(imagesPerSecond), saveName + '.avi'], stdin=PIPE)
-	for i in tqdm(range(len(images))):
+	p = Popen(['ffmpeg', '-y', '-f', 'image2pipe', '-vcodec', 'mjpeg', '-r', str(imagesPerSecond), '-i', '-', '-c:v', 'copy', '-q:v', '0', '-r', str(imagesPerSecond), saveName + '.avi'], stdin=PIPE)
+	for i in tqdm(range(len(images)), position=0, leave=True):
 		img = getTransformedImage(images[i], width, height)
 
 		if type(img) == type(None):
@@ -85,7 +65,6 @@ def makeVideo(images, saveName, imagesPerSecond, width, height):
 		img.save(p.stdin, 'JPEG')
 	p.stdin.close()
 	p.wait()
-
 
 
 def main(args):
