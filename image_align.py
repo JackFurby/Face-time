@@ -58,6 +58,7 @@ def align(image, gray, rect, predictor, desiredFaceWidth, desiredFaceHeight=None
 		coords[i] = (shape.part(i).x, shape.part(i).y)
 
 	shape = coords
+	# show_img(image, coords)
 
 	height, width = image.shape[:2]
 	image_center = (width/2, height/2)
@@ -99,34 +100,50 @@ def align(image, gray, rect, predictor, desiredFaceWidth, desiredFaceHeight=None
 	desiredDist *= desiredFaceWidth
 	scale = desiredDist / dist
 
-	# compute center (x, y)-coordinates (i.e., the median point)
-	# between the two eyes in the input image
-	eyesCenter = ((leftEyeCenter[0].item() + rightEyeCenter[0].item()) // 2,
-		(leftEyeCenter[1].item() + rightEyeCenter[1].item()) // 2)
+	# if the face detector finds a face where there is none then dist will be
+	# far off what other images are line. This in turn will make scale be far
+	# off. If scale is greater that a set amount (3 in this case) then skip the
+	# rest of the function and return None.
 
-	# grab the rotation matrix for rotating and scaling the face
-	M = cv2.getRotationMatrix2D(eyesCenter, angle, scale)
+	# TO DO: this should not be a fixed value but instead some varable based on
+	#        the output resolution.Add this caculation.
+	if scale < 3:
 
-	# rotation calculates the cos and sin, taking absolutes of those.
-	abs_cos = abs(M[0,0])
-	abs_sin = abs(M[0,1])
+		# compute center (x, y)-coordinates (i.e., the median point)
+		# between the two eyes in the input image
+		eyesCenter = ((leftEyeCenter[0].item() + rightEyeCenter[0].item()) // 2,
+			(leftEyeCenter[1].item() + rightEyeCenter[1].item()) // 2)
 
-	# find the new width and height bounds
-	bound_w = int(height * abs_sin + width * abs_cos)
-	bound_h = int(height * abs_cos + width * abs_sin)
+		# grab the rotation matrix for rotating and scaling the face
+		M = cv2.getRotationMatrix2D(eyesCenter, angle, scale)
 
-	# translate face to align center of eyes to the center of the output
-	M[0, 2] += bound_w/2 - eyesCenter[0]
-	M[1, 2] += bound_h/2 - eyesCenter[1]
+		# rotation calculates the cos and sin, taking absolutes of those.
+		abs_cos = abs(M[0,0])
+		abs_sin = abs(M[0,1])
 
-	# apply the affine transformation
-	output = cv2.warpAffine(image, M, (int(bound_w), int(bound_h)),
-		flags=cv2.INTER_CUBIC )
+		# find the new width and height bounds
+		bound_w = int(height * abs_sin + width * abs_cos)
+		bound_h = int(height * abs_cos + width * abs_sin)
 
-	return output
+		# translate face to align center of eyes to the center of the output
+		M[0, 2] += bound_w/2 - eyesCenter[0]
+		M[1, 2] += bound_h/2 - eyesCenter[1]
+
+		# apply the affine transformation
+		output = cv2.warpAffine(image, M, (int(bound_w), int(bound_h)),
+			flags=cv2.INTER_CUBIC)
+
+		return output
+
+	else:
+		return None
 
 
-def show_img(img):
+def show_img(img, coords=None):
+	# If corrdinates are provided draw a circle on the image for each coordinate
+	if coords is not None:
+		for i in coords:
+			img = cv2.circle(img, (i[0], i[1]), 5, [0, 0, 255], 5)
 	while True:
 		img = cv2.resize(img, (360,480))
 		cv2.imshow('image', img)
@@ -161,6 +178,8 @@ def getTransformedImage(path, width, height):
 		if len(rects) > 0:
 			for rect in rects:
 				faceAligned = align(img, gray, rect, predictor, desiredFaceWidth=faceWidth)
+				if faceAligned is None:
+					return None
 				faceAligned = imgPad(faceAligned, width, height)
 				point = (faceAligned.shape[1]/2, faceAligned.shape[0]/2)
 				faceAligned = imgCrop(faceAligned, point, width, height)
