@@ -6,6 +6,10 @@ from tqdm import tqdm
 import argparse
 
 
+from subprocess import Popen, PIPE
+from PIL import Image
+
+
 def getImageLocations(root, type, newestFirst):
 	"""
 	Given a directory will return an array of file paths for images.
@@ -49,6 +53,7 @@ def makeVideo(images, saveName, imagesPerSecond, width, height):
 		height (int): Output video resolution height
 	"""
 
+	"""
 	video = cv2.VideoWriter(saveName + '.avi', 0, imagesPerSecond, (width, height))
 
 	for i in tqdm(range(len(images))):
@@ -60,9 +65,27 @@ def makeVideo(images, saveName, imagesPerSecond, width, height):
 			continue  # skip image
 
 		video.write(img)
+		del img
 
 	cv2.destroyAllWindows()
 	video.release()
+	"""
+
+
+	p = Popen(['ffmpeg', '-y', '-f', 'image2pipe', '-vcodec', 'mjpeg', '-r', str(imagesPerSecond), '-i', '-', '-vcodec', 'mpeg4', '-qscale', '5', '-r', str(imagesPerSecond), saveName + '.avi'], stdin=PIPE)
+	for i in tqdm(range(len(images))):
+		img = getTransformedImage(images[i], width, height)
+
+		if type(img) == type(None):
+			print("No face found in", images[i])
+			continue  # skip image
+
+		img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+		img = Image.fromarray(img, 'RGB')
+		img.save(p.stdin, 'JPEG')
+	p.stdin.close()
+	p.wait()
+
 
 
 def main(args):
