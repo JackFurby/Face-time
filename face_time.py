@@ -52,8 +52,8 @@ def makeVideo(images, saveName, imagesPerSecond, width, height):
 		width (int): Output video resolution width
 		height (int): Output video resolution height
 	"""
-	p = Popen(['ffmpeg', '-y', '-f', 'image2pipe', '-vcodec', 'mjpeg', '-r', str(imagesPerSecond), '-i', '-', '-c:v', 'copy', '-q:v', '0', '-r', str(imagesPerSecond), saveName + '.avi'], stdin=PIPE)
-	for i in tqdm(range(len(images)), position=0, leave=True):
+	p = Popen(['ffmpeg', '-y', '-f', 'image2pipe', '-vcodec', 'mjpeg', '-r', str(imagesPerSecond), '-i', '-', '-c:v', 'copy', '-q:v', '0', '-r', str(imagesPerSecond), saveName + '.mp4'], stdin=PIPE)
+	for i in tqdm(range(len(images))):
 		img = getTransformedImage(images[i], width, height)
 
 		if type(img) == type(None):

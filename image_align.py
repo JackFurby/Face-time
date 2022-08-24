@@ -25,11 +25,6 @@ FACIAL_LANDMARKS_5_IDXS = OrderedDict([
 ])
 
 
-def load_img(path):
-	img = cv2.imread(path)
-	return img
-
-
 def imgCrop(img, point, width, height):
 	left = int(point[0] - (width / 2))
 	right = int(point[0] + (width / 2))
@@ -153,12 +148,8 @@ def show_img(img, coords=None):
 	cv2.destroyAllWindows()
 
 
-def get_rects(image):
-	return detector(image, 0)
-
-
 def getTransformedImage(path, width, height):
-	img = load_img(path)
+	img = cv2.imread(path)
 	faceWidth = width * 0.5
 
 	# If there are multiple faces in the picture it seems to get the center one
